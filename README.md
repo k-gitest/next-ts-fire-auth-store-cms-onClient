@@ -1,38 +1,80 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## 目的
+next.jsを使用してclient側でfirebase各種サービスを使用する技術選定における検証である。
 
-## Getting Started
+## app概要
+create-next-appで構築されたNext.jsとfirabaseのfirestoreとauthenticationを利用したCMSプロジェクトです。
 
-First, run the development server:
+* 複数会員での利用を想定している
+* 会員向けと一般向けで表示画面を分ける前提
+* クライアント側のフロントはSSG、APIはSSRを想定している
+* 認証のみapiを使用し、それ以外は全てclient側で処理する
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-```
+## 開発環境
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+* next 13.4.2
+* typescript 5.0.4
+* firebase 9.22.0
+* firebase-admin 11.9.0
+* tailwind 3.3.2
+* swr 2.1.5
+* axios 1.4.0
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+## ディレクトリ構成
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+<pre>
+myapp...プロジェクトディレクトリ
+  ├── components ...呼び出し用コンポーネントファイル
+  │     ├── FormParts ...フォームコンポーネント
+  │     ├── Private ...ログインユーザー向けコンポーネント
+  │     ├── Public ...非ログインユーザー向けコンポーネント
+  │     ├── layout ...メインレイアウト
+  │     └── provider ...ユーザー認証チェック
+  ├── lib ...firebaseなど外部設定ファイル
+  ├── pages ...初期生成されるメインファイル
+  │     ├── [uid] ...一般向け画面
+  │     │     └── [pid] ... 投稿表示画面
+  │     ├── api ...サーバー側処理
+  │     │     └── admin ... adminSDK使用ファイル
+  │     ├── login ...ログイン画面
+  │     ├── signup ...登録画面
+  │     └── user ...会員向け画面
+  ├── public ...画像ファイル
+  ├── styles ...css設定ファイル
+  └── types ...型定義ファイル
+</pre>
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+* typesには共用できる型定義を入れる
+* 単一コンポーネントのみ適用の型定義の場合はファイル内に記述する
+* firebase認証によるCRUD処理はlib/authsubmitに記述する
+* deleteはサーバー側からでないと削除できないためapi内に記述する
+* ユーザー登録データはlib/userStoreに記述する
+* 投稿データ処理はlib/postStoreに記述する
+* components/provider/AuthProviderのuseContextで状態管理をする
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## 認証方法
 
-## Learn More
+Firebase AuthenticationはJWTを使用して認証情報をクライアントに渡すため、認証の検証はapi側でfirebase-adminを使用しtokenを渡しJWTを検証する。
 
-To learn more about Next.js, take a look at the following resources:
+認証できた場合、認証情報であるuidやtokenはindexedDBに保存される。cookieやローカルストレージではない。
+ログアウトやブラウザを閉じると削除される。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 注意点
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Firebase Authenticationは認証状態を管理するサービス、firestoreはデータを格納するサービスであり、別物であることに注意する必要がある。
 
-## Deploy on Vercel
+リレーションは出来ないがuidは共通である為、uidを活用してデータを呼び出す必要がある。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+firestoreはテーブル/レコード形式ではなくコレクション/ドキュメント形式であり、サブドキュメントと組み合わせてデータを格納する必要がある。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+スキーマはないがデータ形式を幾つか指定する事は可能である。
+SQLではなくmap等を使用してデータを指定や検索などして取得する必要がある。
+
+タイムスタンプ形式で格納すると呼び出した時に型エラーになってしまう。
+その為adminでタイムスタンプをtoMillis()などで加工し格納する必要がある。
+
+## 結論
+
+Firebase Authenticationは簡単に実装できるclient側の認証サービスであり、管理もしやすい。
+
+firestoreは注意点に挙げたとおり癖が強いと感じるが、手軽に使えるDBであることが分かる。
+しかしながら前述の通りコレクション／ドキュメント形式は大規模なDBには向いていないと感じる。
