@@ -1,6 +1,8 @@
 ## 目的
 next.jsを使用してclient側でfirebase各種サービスを使用する技術選定における検証である。
 
+[api側の検証はコチラ](https://github.com/k-gitest/next-ts-fire-auth-store-cms-onAPI)
+
 ## app概要
 create-next-appで構築されたNext.jsとfirabaseのfirestoreとauthenticationを利用したCMSプロジェクトです。
 
