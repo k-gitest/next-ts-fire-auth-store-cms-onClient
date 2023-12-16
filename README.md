@@ -70,7 +70,7 @@ firestoreはテーブル/レコード形式ではなくコレクション/ドキ
 SQLではなくmap等を使用してデータを指定や検索などして取得する必要がある。
 
 タイムスタンプ形式で格納すると呼び出した時に型エラーになってしまう。
-その為adminでタイムスタンプをtoMillis()などで加工し格納する必要がある。
+その為adminでタイムスタンプをtoMillisなどで加工し格納する必要がある。
 
 ## 結論
 
@@ -79,4 +79,10 @@ Firebase Authenticationは簡単に実装できるclient側の認証サービス
 firestoreは注意点に挙げたとおり癖が強いと感じるが、手軽に使えるDBであることが分かる。
 しかしながら前述の通りコレクション／ドキュメント形式は大規模なDBには向いていないと感じる。
 
-[api側の検証はコチラ](https://github.com/k-gitest/next-ts-fire-auth-store-cms-onAPI)
+本プロジェクトをベースとした検証は以下の通り
+
+[api側の検証](https://github.com/k-gitest/next-ts-fire-auth-store-cms-onAPI)
+
+[tailwindとMUIの併用検証](https://github.com/k-gitest/next-ts-fire-auth-store-tailwind-withMUI)
+
+[MUIとRHFのフォーム制御／非制御検証](https://github.com/k-gitest/next-ts-fire-mui-rhf-zod)
