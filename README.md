@@ -46,10 +46,55 @@ myapp...プロジェクトディレクトリ
 * typesには共用できる型定義を入れる
 * 単一コンポーネントのみ適用の型定義の場合はファイル内に記述する
 * firebase認証によるCRUD処理はlib/authsubmitに記述する
-* deleteはサーバー側からでないと削除できないためapi内に記述する
+* 登録削除のdeleteはサーバー側からでないと削除できないためapi内に記述する
 * ユーザー登録データはlib/userStoreに記述する
 * 投稿データ処理はlib/postStoreに記述する
 * components/provider/AuthProviderのuseContextで状態管理をする
+
+## データ構造
+
+<pre>
+Authentication
+  ├── ID  ...指定認証形式
+  ├── 作成日
+  ├── ログイン日
+  └── UID ...一意の文字列
+
+Firestore Home
+  ├── users ...会員コレクション
+  │      └── **** ...ドキュメントidはuid
+  │          ├── address ...テキストフィールド
+  │          ├── comment ...テキストエリア
+  │          ├── createdAt ...作成日
+  │          ├── email ...テキストフィールド
+  │          ├── gender ...ラジオ
+  │          ├── hobby ...チェックボックス配列
+  │          ├── name ...テキストフィールド
+  │          └── selectValue ...セレクト
+  └── posts ...投稿コレクション
+       └── **** ...ドキュメントidはuid
+            └── post ...サブコレクション
+                 └── **** ...ドキュメントidは自動生成
+                      ├── article ...投稿
+                      ├── category ...カテゴリー
+                      ├── createAt ...作成日
+                      ├── pid ...サブコレドキュメントid
+                      ├── release ...公開日
+                      ├── title ...タイトル
+                      ├── uid ...ドキュメントid
+                      └── updatedAt ...更新日
+</pre>
+
+* authのuidをドキュメント名にusersとpostsコレクションを作成
+* サブコレクションのドキュメント名をpidとしドキュメント内に格納
+* 上記によってセキュリティルールやユーザー・投稿ごとの指定がしやすくなりURIも一意となる
+
+<pre>
+この様に書くことができる
+match /users/{userId}
+match /posts/{postId}
+match /posts/{postId}/post/{postSubId}
+</pre>
 
 ## 認証方法
 
@@ -71,6 +116,8 @@ SQLではなくmap等を使用してデータを指定や検索などして取�
 
 タイムスタンプ形式で格納すると呼び出した時に型エラーになってしまう。
 その為adminでタイムスタンプをtoMillisなどで加工し格納する必要がある。
+
+swrを任意のタイミングで手動で実行する場合はswr/mutationのカスタムフックuseSWRMutationを使用する。自動的には行わない。返り値は{ data, trigger, isMutating }。
 
 ## 結論
 
